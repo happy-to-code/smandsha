@@ -1,13 +1,18 @@
 package chain.tj.util;
 
+import chain.tj.model.proto.MyPeer;
+import chain.tj.model.proto.MyTransaction;
+import chain.tj.model.proto.PeerGrpc;
+import com.google.protobuf.ByteString;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static chain.tj.util.GmUtils.*;
-import static chain.tj.util.PeerUtil.hexToByteArray;
-import static chain.tj.util.PeerUtil.toHexString;
+import static chain.tj.util.PeerUtil.*;
 import static chain.tj.util.ShaUtil.getSHA256Str;
 import static chain.tj.util.TjParseEncryptionKey.*;
 
@@ -34,6 +39,47 @@ public class HashTool {
         String data = "bb0c13584f3dd789234cd3e6cf8247e0ab8ce8be4574127ecdffffb0eaeb76cc";
         Boolean pubKey = hashTool.verifyFile(sign, data, priAndPubKeyBytes.get("pubKey"));
         System.out.println("pubKey = " + pubKey);
+
+
+        MyPeer.PeerResponse response = hashTool.createPeer(priAndPubKeyBytes.get("pubKey"), data, sign);
+        System.out.println(response);
+
+    }
+
+    public MyPeer.PeerResponse createPeer(byte[] pukKey, String data, String sign) {
+        PeerGrpc.PeerBlockingStub stub = getStubByIpAndPort("10.1.3.150", 9008);
+
+        ByteBuf buf = Unpooled.buffer();
+        buf.writeBytes(int2Bytes(pukKey.length));
+        buf.writeBytes(pukKey);
+
+        // 写入数据
+        buf.writeBytes(int2Bytes(data.getBytes().length));
+        buf.writeBytes(data.getBytes());
+        byte[] bytes = convertBuf(buf);
+
+        MyTransaction.TransactionHeader transactionHeader = MyTransaction.TransactionHeader.newBuilder()
+                .setVersion(0)
+                .setType(0)
+                .setSubType(0)
+                .setTimestamp(System.currentTimeMillis() / 1000)
+                .setTransactionHash(ByteString.copyFrom(bytes))
+                .build();
+
+        MyTransaction.Transaction transaction = MyTransaction.Transaction.newBuilder()
+                .setHeader(transactionHeader)
+                .setPubkey(ByteString.copyFrom(pukKey))
+                .setData(ByteString.copyFrom(hexToByteArray(data)))
+                .setSign(ByteString.copyFrom(hexToByteArray(sign)))
+                .build();
+
+        MyPeer.PeerRequest request = MyPeer.PeerRequest.newBuilder()
+                .setPubkey(ByteString.copyFrom(pukKey))
+                .setPayload(transaction.toByteString())
+                .build();
+
+        MyPeer.PeerResponse peerResponse = stub.newTransaction(request);
+        return peerResponse;
     }
 
 
@@ -77,7 +123,7 @@ public class HashTool {
      * @param fileHash
      * @return
      */
-    public Boolean verifyFile(String sign, String fileHash,byte[] pubKeyBytes) {
+    public Boolean verifyFile(String sign, String fileHash, byte[] pubKeyBytes) {
 
         boolean verify = sm2Verify(pubKeyBytes, hexToByteArray(fileHash), hexToByteArray(sign));
         return verify;
