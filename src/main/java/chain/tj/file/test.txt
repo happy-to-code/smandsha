@@ -1,0 +1,30 @@
+ ========================================================================
+ =======    Jetbrains Activation Code And License Server Crack    =======
+ =======                     https://zhile.io                     =======
+ =======              v3.2.1, Build Date: 2020-04-11              =======
+ ========================================================================
+
+ *** 如果你下载的jetbrains-agent.jar小于2M，肯定是没有下载完全（可对照sha1sum.txt）。***
+ *** 请保留压缩包内的important.txt和jetbrains-agent.jar放在同一个目录，且不要改动内容！***
+
+ *** 传统的vmoptions配置需要技巧，我推荐你还是按照本文档的方式配置！***
+
+ Usage:
+ 0. Download the zip package and get jetbrains-agent.jar first.
+    Download page: https://zhile.io/2018/08/17/jetbrains-license-server-crack.html
+ 1. Run the IDE and evalutate for free.
+    You can reset eval by using: reset_eval script.
+ 2. Drag the jetbrains-agent.jar into the IDE window (Or install it as an IDE plugin).
+    (Actually you can drag jetbrains-agent-latest.zip too)
+    Click "Restart" button to restart your IDE.
+ 3. You will see the JetbrainsAgent Helper dialog.
+    Select license type and click install button.
+ 4. Restart IDE, and all done.
+ x. Support "License server" and "Activation code":
+    1). Entry license server address: https://fls.jetbrains-agent.com (Or http, if failed see no.2 [below])
+    2). Active offline with the activation code file: ACTIVATION_CODE.txt
+        License key is in legacy format == Key invalid，check your agent's config again
+        If you need a custom license name, visit: https://zhile.io/custom-license.html
+    3). Now you can activate jetbrains paid plugin with jetbrains-agent + activation code/license server!
+        Jetbrains paid plugins activation code: https://zhile.io/jetbrains-paid-plugins-license.html
+        All paid plugins: https://plugins.jetbrains.com/search?isPaid=true
