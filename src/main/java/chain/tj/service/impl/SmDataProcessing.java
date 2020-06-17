@@ -16,6 +16,7 @@ import static chain.tj.util.FileUtil.getFileExtInfo;
 import static chain.tj.util.GmUtils.*;
 import static chain.tj.util.PeerUtil.hexToByteArray;
 import static chain.tj.util.PeerUtil.toHexString;
+import static chain.tj.util.ShaUtil.getSHA256Str;
 import static chain.tj.util.TjParseEncryptionKey.*;
 
 /**
@@ -33,22 +34,22 @@ public class SmDataProcessing implements DataProcessing {
      * 获取文件hash值
      *
      * @param fileDto
+     * @param hashType
      * @return
      */
     @Override
-    public RestResponse fileToHash(FileDto fileDto) {
+    public RestResponse fileToHash(FileDto fileDto, String hashType) {
         // 组装或者获取FileExtInfo对象
         FileExtInfo fileExtInfo = packageFileExtInfo(fileDto);
         if (null != fileExtInfo) {
-            byte[] sm3EncryptionBytes = sm3Encryption(fileExtInfo);
-            if (null != sm3EncryptionBytes) {
+            byte[] hashBytes = hashEncryption(fileExtInfo, hashType);
+            if (null != hashBytes) {
                 // 然后转成16进制字符串
-                String str = toHexString(sm3EncryptionBytes);
+                String str = toHexString(hashBytes);
                 log.info("str16--------->" + str);
                 return RestResponse.success().setData(str);
             }
         }
-
         return RestResponse.failure("获取文件哈希值失败！", StatusCode.SERVER_500000.value());
     }
 
@@ -140,14 +141,17 @@ public class SmDataProcessing implements DataProcessing {
      * @param fileExtInfo
      * @return
      */
-    private byte[] sm3Encryption(FileExtInfo fileExtInfo) {
+    private byte[] hashEncryption(FileExtInfo fileExtInfo, String hashType) {
         //  文件序列化
-        if (null != fileExtInfo) {
+        if (null != fileExtInfo && null != fileExtInfo.getFileByte()) {
             // byte[] fileBytes = serialFileDto(fileExtInfo);
             byte[] fileBytes = JSON.toJSONString(fileExtInfo.getFileByte()).getBytes();
-
-            // 使用sm3加密
-            return sm3Hash(fileBytes);
+            if (StringUtils.isBlank(hashType) || StringUtils.equals(hashType, "sm3")) {
+                // 使用sm3加密
+                return sm3Hash(fileBytes);
+            } else {
+                return getSHA256Str(JSON.toJSONString(fileExtInfo.getFileByte()));
+            }
         }
         return null;
     }

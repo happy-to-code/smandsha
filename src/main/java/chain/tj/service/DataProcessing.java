@@ -15,9 +15,10 @@ public interface DataProcessing {
      * 讲文件转成hash值
      *
      * @param fileDto
+     * @param hashType
      * @return
      */
-    RestResponse fileToHash(FileDto fileDto);
+    RestResponse fileToHash(FileDto fileDto, String hashType);
 
 
     /**

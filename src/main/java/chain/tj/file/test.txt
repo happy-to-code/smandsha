@@ -18,7 +18,7 @@
     (Actually you can drag jetbrains-agent-latest.zip too)
     Click "Restart" button to restart your IDE.
  3. You will see the JetbrainsAgent Helper dialog.
-    Select license type and click install button.
+    Select license type and click install button
  4. Restart IDE, and all done.
  x. Support "License server" and "Activation code":
     1). Entry license server address: https://fls.jetbrains-agent.com (Or http, if failed see no.2 [below])

@@ -6,6 +6,8 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import static chain.tj.util.PeerUtil.toHexString;
+
 /**
  * @author ：zhangyifei
  * @date ：Created in 2020/6/17 18:41
@@ -14,13 +16,18 @@ import java.security.NoSuchAlgorithmException;
  * @version:
  */
 public class ShaUtil {
+    public static void main(String[] args) {
+        byte[] ssss1 = getSHA256Str("ssss1");
+        System.out.println("ssss1 = " + toHexString(ssss1));
+    }
+
     /**
      * 利用Apache的工具类实现SHA-256加密
      *
      * @param str 加密后的报文
      * @return
      */
-    public static String getSHA256Str(String str) {
+    public static byte[] getSHA256Str(String str) {
         MessageDigest messageDigest;
         String encdeStr = "";
         try {
@@ -32,7 +39,7 @@ public class ShaUtil {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        return encdeStr;
+        return encdeStr.getBytes();
     }
 
 
