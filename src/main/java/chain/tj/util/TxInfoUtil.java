@@ -121,7 +121,7 @@ public class TxInfoUtil {
         // 创建Post请求
         HttpPost httpPost = new HttpPost("http://10.1.5.226:58080/store");
 
-        Map<String, String> map = new HashMap<>(2);
+        Map<String, String> map = new HashMap<String, String>(2);
         map.put("Data", data);
 
         String jsonString = JSON.toJSONString(map);

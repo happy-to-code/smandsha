@@ -11,4 +11,9 @@
       </profile>
     </annotationProcessing>
   </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="save-file" options="-extdirs E:\200617workproject\java/src/main/resources/lib" />
+    </option>
+  </component>
 </project>

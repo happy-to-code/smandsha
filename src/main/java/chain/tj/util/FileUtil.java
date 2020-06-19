@@ -1,7 +1,6 @@
 package chain.tj.util;
 
 import chain.tj.model.domain.FileExtInfo;
-import com.alibaba.fastjson.JSON;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -11,9 +10,6 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-
-import static chain.tj.util.GmUtils.sm3Hash;
-import static chain.tj.util.PeerUtil.toHexString;
 
 /**
  * @author ：zhangyifei
@@ -28,14 +24,14 @@ public class FileUtil {
         FileExtInfo fileExtInfo = getFileExtInfo("E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\file\\test.txt");
         System.out.println("fileExtInfo = " + fileExtInfo);
 
-        String s = JSON.toJSONString(fileExtInfo);
-        System.out.println("s = " + s);
-        byte[] bytes = s.getBytes();
-        System.out.println("bytes = " + bytes);
-
-        byte[] bytes1 = sm3Hash(bytes);
-        String s1 = toHexString(bytes1);
-        System.out.println("s1 = " + s1);
+        // String s = JSON.toJSONString(fileExtInfo);
+        // System.out.println("s = " + s);
+        // byte[] bytes = s.getBytes();
+        // System.out.println("bytes = " + bytes);
+        //
+        // byte[] bytes1 = sm3Hash(bytes);
+        // String s1 = toHexString(bytes1);
+        // System.out.println("s1 = " + s1);
     }
 
     /**
@@ -81,6 +77,7 @@ public class FileUtil {
         fileExtInfo.setExtName(fileExtName);
 
         return fileExtInfo;
+
     }
 
     /**

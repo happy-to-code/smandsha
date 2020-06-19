@@ -43,7 +43,7 @@ public class HashTool {
      * @param priKeyPath
      * @return
      */
-    public Map<String, byte[]> getPriAndPubKeyBytes(String pubKeyPath, String priKeyPath) {
+    public static Map<String, byte[]> getPriAndPubKeyBytes(String pubKeyPath, String priKeyPath) {
         Map<String, byte[]> key = new HashMap<>(2);
 
         // 读取私钥
@@ -76,7 +76,7 @@ public class HashTool {
      * @param fileHash
      * @return
      */
-    public Boolean verifyFile(String sign, String fileHash, byte[] pubKeyBytes) {
+    public static Boolean verifyFile(String sign, String fileHash, byte[] pubKeyBytes) {
         boolean verify = sm2Verify(pubKeyBytes, hexToByteArray(fileHash), hexToByteArray(sign));
         return verify;
     }
@@ -86,7 +86,7 @@ public class HashTool {
      * @param data
      * @param hashType
      */
-    public Map<String, String> getHashAndSign(String data, String hashType, byte[] priKeyBytes) {
+    public static Map<String, String> getHashAndSign(String data, String hashType, byte[] priKeyBytes) {
         Map<String, String> map = new HashMap<>(2);
         // 获取hash
         byte[] hashBytes;
