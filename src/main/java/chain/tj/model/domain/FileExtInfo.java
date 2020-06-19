@@ -38,5 +38,4 @@ public class FileExtInfo {
     private Long fileSizes;
 
 
-
 }

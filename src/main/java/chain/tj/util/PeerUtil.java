@@ -1,11 +1,7 @@
 package chain.tj.util;
 
 
-import chain.tj.model.proto.PeerGrpc;
 import com.google.protobuf.ByteString;
-import io.grpc.ManagedChannel;
-import io.grpc.netty.NegotiationType;
-import io.grpc.netty.NettyChannelBuilder;
 import io.netty.buffer.ByteBuf;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.ArrayUtils;
@@ -124,14 +120,13 @@ public class PeerUtil {
      * @param
      * @return
      */
-    public static PeerGrpc.PeerBlockingStub getStubByIpAndPort(String ip, Integer port) {
-        ManagedChannel channel = NettyChannelBuilder.forAddress(ip, port)
-                .negotiationType(NegotiationType.PLAINTEXT)
-                .build();
-
-        return PeerGrpc.newBlockingStub(channel);
-    }
-
+    // public static PeerGrpc.PeerBlockingStub getStubByIpAndPort(String ip, Integer port) {
+    //     ManagedChannel channel = NettyChannelBuilder.forAddress(ip, port)
+    //             .negotiationType(NegotiationType.PLAINTEXT)
+    //             .build();
+    //
+    //     return PeerGrpc.newBlockingStub(channel);
+    // }
     public static String bytesToString(ByteString src, String charSet) {
         if (StringUtils.isEmpty(charSet)) {
             charSet = "GB2312";

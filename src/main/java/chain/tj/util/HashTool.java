@@ -1,9 +1,7 @@
 package chain.tj.util;
 
-import chain.tj.model.proto.MyPeer;
-import chain.tj.model.proto.MyTransaction;
-import chain.tj.model.proto.PeerGrpc;
-import com.google.protobuf.ByteString;
+import chain.tj.model.dto.TransactionDto;
+import chain.tj.model.dto.TransactionHeaderDto;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.apache.commons.lang3.StringUtils;
@@ -40,46 +38,36 @@ public class HashTool {
         Boolean pubKey = hashTool.verifyFile(sign, data, priAndPubKeyBytes.get("pubKey"));
         System.out.println("pubKey = " + pubKey);
 
-
-        MyPeer.PeerResponse response = hashTool.createPeer(priAndPubKeyBytes.get("pubKey"), data, sign);
-        System.out.println(response);
+        // MyPeer.PeerResponse response = hashTool.createPeer(priAndPubKeyBytes.get("pubKey"), data, sign);
+        // System.out.println(response);
 
     }
 
-    public MyPeer.PeerResponse createPeer(byte[] pukKey, String data, String sign) {
-        PeerGrpc.PeerBlockingStub stub = getStubByIpAndPort("10.1.3.150", 9008);
 
+    private byte[] getSysData(byte[] dataBytes, byte[] pukKey) {
         ByteBuf buf = Unpooled.buffer();
         buf.writeBytes(int2Bytes(pukKey.length));
         buf.writeBytes(pukKey);
 
         // 写入数据
-        buf.writeBytes(int2Bytes(data.getBytes().length));
-        buf.writeBytes(data.getBytes());
-        byte[] bytes = convertBuf(buf);
+        buf.writeBytes(int2Bytes(dataBytes.length));
+        buf.writeBytes(dataBytes);
+        return convertBuf(buf);
+    }
 
-        MyTransaction.TransactionHeader transactionHeader = MyTransaction.TransactionHeader.newBuilder()
-                .setVersion(0)
-                .setType(0)
-                .setSubType(0)
-                .setTimestamp(System.currentTimeMillis() / 1000)
-                .setTransactionHash(ByteString.copyFrom(bytes))
-                .build();
+    private TransactionDto createTransactionDto(long currentTime, byte[] pukKey) {
+        TransactionDto transactionDto = new TransactionDto();
 
-        MyTransaction.Transaction transaction = MyTransaction.Transaction.newBuilder()
-                .setHeader(transactionHeader)
-                .setPubkey(ByteString.copyFrom(pukKey))
-                .setData(ByteString.copyFrom(hexToByteArray(data)))
-                .setSign(ByteString.copyFrom(hexToByteArray(sign)))
-                .build();
+        TransactionHeaderDto transactionHeaderDto = new TransactionHeaderDto();
+        transactionHeaderDto.setVersion(0);
+        transactionHeaderDto.setType(0);
+        transactionHeaderDto.setSubType(0);
+        transactionHeaderDto.setTimestamp(currentTime);
 
-        MyPeer.PeerRequest request = MyPeer.PeerRequest.newBuilder()
-                .setPubkey(ByteString.copyFrom(pukKey))
-                .setPayload(transaction.toByteString())
-                .build();
+        transactionDto.setTransactionHeader(transactionHeaderDto);
+        transactionDto.setPubKey(pukKey);
 
-        MyPeer.PeerResponse peerResponse = stub.newTransaction(request);
-        return peerResponse;
+        return transactionDto;
     }
 
 
@@ -145,7 +133,6 @@ public class HashTool {
             hashBytes = getSHA256Str(data);
         }
         String hexStrHash = toHexString(hashBytes);
-
 
         // 签名  public static byte[] sm2Sign(byte[] privateKey, byte[] sm3bytes)
         byte[] signBytes = new byte[0];
