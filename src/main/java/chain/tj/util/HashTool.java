@@ -1,16 +1,13 @@
 package chain.tj.util;
 
-import chain.tj.model.dto.TransactionDto;
-import chain.tj.model.dto.TransactionHeaderDto;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static chain.tj.util.GmUtils.*;
-import static chain.tj.util.PeerUtil.*;
+import static chain.tj.util.PeerUtil.hexToByteArray;
+import static chain.tj.util.PeerUtil.toHexString;
 import static chain.tj.util.ShaUtil.getSHA256Str;
 import static chain.tj.util.TjParseEncryptionKey.*;
 
@@ -29,7 +26,6 @@ public class HashTool {
         // 获取公私钥
         Map<String, byte[]> priAndPubKeyBytes = hashTool.getPriAndPubKeyBytes(pubPath, priPath);
 
-
         Map<String, String> hashAndSign = hashTool.getHashAndSign("12312", "sm3", priAndPubKeyBytes.get("priKey"));
         System.out.println("hashAndSign = " + hashAndSign);
         // {sign=3045022100b758d7c921c2181b96b2759968038cca437fe26806e5b12ab715706d8f2bc0da022049b642b77f2f8e9cde2aaf7d80256e152e874f14350be8fdeba0d10b260e1680, hash=bb0c13584f3dd789234cd3e6cf8247e0ab8ce8be4574127ecdffffb0eaeb76cc}
@@ -37,37 +33,6 @@ public class HashTool {
         String data = "bb0c13584f3dd789234cd3e6cf8247e0ab8ce8be4574127ecdffffb0eaeb76cc";
         Boolean pubKey = hashTool.verifyFile(sign, data, priAndPubKeyBytes.get("pubKey"));
         System.out.println("pubKey = " + pubKey);
-
-        // MyPeer.PeerResponse response = hashTool.createPeer(priAndPubKeyBytes.get("pubKey"), data, sign);
-        // System.out.println(response);
-
-    }
-
-
-    private byte[] getSysData(byte[] dataBytes, byte[] pukKey) {
-        ByteBuf buf = Unpooled.buffer();
-        buf.writeBytes(int2Bytes(pukKey.length));
-        buf.writeBytes(pukKey);
-
-        // 写入数据
-        buf.writeBytes(int2Bytes(dataBytes.length));
-        buf.writeBytes(dataBytes);
-        return convertBuf(buf);
-    }
-
-    private TransactionDto createTransactionDto(long currentTime, byte[] pukKey) {
-        TransactionDto transactionDto = new TransactionDto();
-
-        TransactionHeaderDto transactionHeaderDto = new TransactionHeaderDto();
-        transactionHeaderDto.setVersion(0);
-        transactionHeaderDto.setType(0);
-        transactionHeaderDto.setSubType(0);
-        transactionHeaderDto.setTimestamp(currentTime);
-
-        transactionDto.setTransactionHeader(transactionHeaderDto);
-        transactionDto.setPubKey(pukKey);
-
-        return transactionDto;
     }
 
 
@@ -112,7 +77,6 @@ public class HashTool {
      * @return
      */
     public Boolean verifyFile(String sign, String fileHash, byte[] pubKeyBytes) {
-
         boolean verify = sm2Verify(pubKeyBytes, hexToByteArray(fileHash), hexToByteArray(sign));
         return verify;
     }

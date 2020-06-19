@@ -2,6 +2,7 @@ package chain.tj.util;
 
 import chain.tj.common.exception.ServiceException;
 import com.alibaba.fastjson.JSON;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
@@ -14,6 +15,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,13 +29,16 @@ import java.util.Map;
  */
 public class TxInfoUtil {
     public static void main(String[] args) {
-        getChainHeight();
+        // getChainHeight();
+        //
+        // String blockByHeight = getBlockByHeight(5);
+        // System.out.println("block = " + blockByHeight);
+        //
+        // String sdfad = saveStore("sdfad");
+        // System.out.println("sdfad = " + sdfad);
 
-        String blockByHeight = getBlockByHeight(5);
-        System.out.println("block = " + blockByHeight);
-
-        String sdfad = saveStore("sdfad");
-        System.out.println("sdfad = " + sdfad);
+        String blockByHash = getBlockByHash("1uL9PypILklMzdcGFdMDFHX03Nk0tLX7+gldh+7SWag=");
+        System.out.println("blockByHash = " + blockByHash);
     }
 
 
@@ -44,7 +50,6 @@ public class TxInfoUtil {
      */
     public static String saveStore(String data) {
         String s = doPost(data);
-
         return s;
     }
 
@@ -63,6 +68,21 @@ public class TxInfoUtil {
     }
 
     /**
+     * 根据hash值获取区块信息
+     *
+     * @return
+     */
+    public static String getBlockByHash(String hash) {
+        if (StringUtils.isBlank(hash)) {
+            throw new ServiceException("区块哈希值不可以为空");
+        }
+        String urlEncodeStr = urlEncode(hash);
+        String url = "getblockbyhash?hash=" + urlEncodeStr;
+        String result = doGetInfo(url);
+        return result;
+    }
+
+    /**
      * 根据链的高度获取区块信息
      *
      * @return
@@ -75,6 +95,23 @@ public class TxInfoUtil {
         String result = doGetInfo(url);
         return result;
     }
+
+    /**
+     * url编码
+     *
+     * @param param
+     * @return
+     */
+    public static String urlEncode(String param) {
+        String encode = null;
+        try {
+            encode = URLEncoder.encode(param, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return encode;
+    }
+
 
     public static String doPost(String data) {
         String res = "";
