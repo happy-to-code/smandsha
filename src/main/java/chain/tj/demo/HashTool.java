@@ -58,7 +58,8 @@ public class HashTool {
         System.out.println("fileSign 16进制形式= " + toHexString(fileSign));
         System.out.println("---------------------------------分割线---------------------------------");
 
-        // 验证签名
+        // 验证签名,验证通过：true    验证不通过：false
+        // fileHash = new byte[]{1, 3};
         Boolean verifyResult = verifyFile(fileSign, fileHash, pubKeyBytes);
         System.out.println("验证结果：" + verifyResult);
         System.out.println("---------------------------------分割线---------------------------------");
