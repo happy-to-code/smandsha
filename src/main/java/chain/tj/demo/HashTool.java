@@ -77,8 +77,8 @@ public class HashTool {
         String hash = "TZeojuWdhvy1Bh2WEOvPN+ocYkOxnFc2OKr0hpDAv74=";
         String blockByHash = getBlockByHash(hash);
         System.out.println("blockByHash = " + blockByHash);
-
         System.out.println("---------------------------------分割线---------------------------------");
+
         // 根据链的高度获取区块信息
         String blockByHeight = getBlockByHeight(12);
         System.out.println("blockByHeight = " + blockByHeight);
