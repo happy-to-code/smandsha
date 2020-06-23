@@ -2,6 +2,7 @@ package chain.tj.demo;
 
 import chain.tj.common.exception.ServiceException;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.ParseException;
@@ -39,51 +40,61 @@ public class HashTool {
         String priPath = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\file\\key\\priv.pem";
         byte[] priKeyBytes = getPriKeyByPath(priPath);
         System.out.println("priKeyBytes 16进制形式 = " + toHexString(priKeyBytes));
-        System.out.println("---------------------------------分割线---------------------------------");
+        System.out.println("---------------------------------分割线0---------------------------------");
 
         // 获取公钥字节数组
         String pubPath = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\file\\key\\pub.pem";
         byte[] pubKeyBytes = getPubKeyByPath(pubPath);
         System.out.println("pubKeyBytes 16进制形式 = " + toHexString(pubKeyBytes));
-        System.out.println("---------------------------------分割线---------------------------------");
+        System.out.println("---------------------------------分割线1---------------------------------");
 
         // 获取文件hash
         String filePath = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\file\\test.txt";
         byte[] fileHash = getFileHash(filePath, "");
         System.out.println("fileHash  16进制形式= " + toHexString(fileHash));
-        System.out.println("---------------------------------分割线---------------------------------");
+        System.out.println("---------------------------------分割线2---------------------------------");
 
         // 获取文件的签名
         byte[] fileSign = getFileSign(fileHash, priKeyBytes);
         System.out.println("fileSign 16进制形式= " + toHexString(fileSign));
-        System.out.println("---------------------------------分割线---------------------------------");
+        System.out.println("---------------------------------分割线3---------------------------------");
 
         // 验证签名,验证通过：true    验证不通过：false
         // fileHash = new byte[]{1, 3};
         Boolean verifyResult = verifyFile(fileSign, fileHash, pubKeyBytes);
         System.out.println("验证结果：" + verifyResult);
-        System.out.println("---------------------------------分割线---------------------------------");
+        System.out.println("---------------------------------分割线4---------------------------------");
 
         // 保存存证内容
-        String response = saveStore(toHexString(fileHash));
-        System.out.println("response = " + response);
-        System.out.println("---------------------------------分割线---------------------------------");
+        Map responseMap = saveStore(toHexString(fileHash));
+        // 此处会返回交易hash,交易hash的值存在：responseMap.get("Data").get("Figure") 中
+        System.out.println("responseMap = " + responseMap);
+        System.out.println("---------------------------------分割线5---------------------------------");
 
-        // 获取链的高度
-        String chainHeight = getChainHeight();
-        System.out.println("chainHeight = " + chainHeight);
-        System.out.println("---------------------------------分割线---------------------------------");
 
-        // 根据hash值获取区块信息
-        String hash = "TZeojuWdhvy1Bh2WEOvPN+ocYkOxnFc2OKr0hpDAv74=";
-        String blockByHash = getBlockByHash(hash);
-        System.out.println("blockByHash = " + blockByHash);
-        System.out.println("---------------------------------分割线---------------------------------");
+        // 根据交易hash获取当前区块的高度
+        Map map = (Map) responseMap.get("Data");
+        String figure = (String) map.get("Figure");
+        System.out.println("figure = " + figure);
+        // String figure = "2BOXEuGHhV9yB+yx48FGWof+122wvAPrWsUVtiAxXkE=";
+        Map heightByTxHash = getHeightByTxHash(figure);
+        // 区块的高度存放在 heightByTxHash.get("Data") 中
+        System.out.println("heightByTxHash = " + heightByTxHash);
+        System.out.println("---------------------------------分割线6---------------------------------");
 
         // 根据链的高度获取区块信息
-        String blockByHeight = getBlockByHeight(12);
+        Integer height = (Integer) heightByTxHash.get("Data");
+        Map blockByHeight = getBlockByHeight(height);
+        // 此处会返回 区块hash的值，位置：blockByHeight.get("Data").get("header").get("blockHash")
         System.out.println("blockByHeight = " + blockByHeight);
+        System.out.println("---------------------------------分割线7---------------------------------");
 
+        // 根据hash值获取区块信息
+        Map data = (Map) blockByHeight.get("Data");
+        Map header = (Map) data.get("header");
+        String hash = (String) header.get("blockHash");
+        String blockByHash = getBlockByHash(hash);
+        System.out.println("blockByHash = " + blockByHash);
     }
 
 
@@ -186,9 +197,12 @@ public class HashTool {
      * @param data 要保存的内容
      * @return
      */
-    public static String saveStore(String data) {
+    public static Map saveStore(String data) {
         String s = doPost(data);
-        return s;
+        // 将json串转为Map
+        Map map = (Map) JSONObject.parse(s);
+        // Map map = JSON.parseObject(s, Map.class);
+        return map;
     }
 
 
@@ -221,17 +235,34 @@ public class HashTool {
     }
 
     /**
+     * 根据交易hash获取区块的高度
+     *
+     * @param txHash
+     * @return
+     */
+    public static Map getHeightByTxHash(String txHash) {
+        if (StringUtils.isBlank(txHash)) {
+            throw new ServiceException("交易哈希值不可以为空");
+        }
+        String urlEncodeStr = urlEncode(txHash);
+        String url = "gettransactionblock?hashData=" + urlEncodeStr;
+        String result = doGetInfo(url);
+
+        return JSON.parseObject(result, Map.class);
+    }
+
+    /**
      * 根据链的高度获取区块信息
      *
      * @return
      */
-    public static String getBlockByHeight(Integer height) {
+    public static Map getBlockByHeight(Integer height) {
         if (height <= 0) {
             throw new ServiceException("高度应该大于0");
         }
         String url = "getblockbyheight?number=" + height;
         String result = doGetInfo(url);
-        return result;
+        return JSON.parseObject(result, Map.class);
     }
 
     /**
@@ -260,7 +291,7 @@ public class HashTool {
         String res = "";
 
         // 获得Http客户端(可以理解为:你得先有一个浏览器;注意:实际上HttpClient与浏览器是不一样的)
-        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        CloseableHttpClient httpClientPost = HttpClientBuilder.create().build();
         // 创建Post请求
         HttpPost httpPost = new HttpPost("http://10.1.5.226:58080/store");
 
@@ -280,7 +311,7 @@ public class HashTool {
         CloseableHttpResponse response = null;
         try {
             // 由客户端执行(发送)Post请求
-            response = httpClient.execute(httpPost);
+            response = httpClientPost.execute(httpPost);
             // 从响应模型中获取响应实体
             HttpEntity responseEntity = response.getEntity();
             //
@@ -299,8 +330,8 @@ public class HashTool {
         } finally {
             try {
                 // 释放资源
-                if (httpClient != null) {
-                    httpClient.close();
+                if (httpClientPost != null) {
+                    httpClientPost.close();
                 }
                 if (response != null) {
                     response.close();
