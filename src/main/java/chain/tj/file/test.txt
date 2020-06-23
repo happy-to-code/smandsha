@@ -1,14 +1,3 @@
- ========================================================================
- =======    Jetbrains Activation Code And License Server Crack    =======
- =======                     https://zhile.io                     =======
- =======              v3.2.1, Build Date: 2020-04-11              =======
- ========================================================================
-
- *** 如果你下载的jetbrains-agent.jar小于2M，肯定是没有下载完全（可对照sha1sum.txt）。***
- *** 请保留压缩包内的important.txt和jetbrains-agent.jar放在同一个目录，且不要改动内容！***
-
- *** 传统的vmoptions配置需要技巧，我推荐你还是按照本文档的方式配置！***
-
  Usage:
  0. Download the zip package and get jetbrains-agent.jar first.
     Download page: https://zhile.io/2018/08/17/jetbrains-license-server-crack.html

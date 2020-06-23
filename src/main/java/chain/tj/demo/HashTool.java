@@ -35,15 +35,18 @@ import static chain.tj.util.TjParseEncryptionKey.*;
  * @version:
  */
 public class HashTool {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
+        // 在chain.tj.demo.MyGmUtil中有一个main方法，运行后会在当前文件夹中生成一对公私钥
+        // 如果不想生成，可以直接用chain.tj.file.key中的密钥对
+
         // 获取私钥字节数组
-        String priPath = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\file\\key\\priv.pem";
+        String priPath = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\demo\\priKey.pem";
         byte[] priKeyBytes = getPriKeyByPath(priPath);
         System.out.println("priKeyBytes 16进制形式 = " + toHexString(priKeyBytes));
         System.out.println("---------------------------------分割线0---------------------------------");
 
         // 获取公钥字节数组
-        String pubPath = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\file\\key\\pub.pem";
+        String pubPath = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\demo\\pubKey.pem";
         byte[] pubKeyBytes = getPubKeyByPath(pubPath);
         System.out.println("pubKeyBytes 16进制形式 = " + toHexString(pubKeyBytes));
         System.out.println("---------------------------------分割线1---------------------------------");
@@ -76,7 +79,8 @@ public class HashTool {
         Map map = (Map) responseMap.get("Data");
         String figure = (String) map.get("Figure");
         System.out.println("figure = " + figure);
-        // String figure = "2BOXEuGHhV9yB+yx48FGWof+122wvAPrWsUVtiAxXkE=";
+        // 同步节点之间数据
+        Thread.sleep(5000);
         Map heightByTxHash = getHeightByTxHash(figure);
         // 区块的高度存放在 heightByTxHash.get("Data") 中
         System.out.println("heightByTxHash = " + heightByTxHash);
