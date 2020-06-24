@@ -1,6 +1,9 @@
 package chain.tj.demo;
 
 import chain.tj.common.exception.ServiceException;
+import chain.tj.model.domain.court.Check;
+import chain.tj.model.domain.court.CourtFileInfo;
+import chain.tj.model.domain.court.Header;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
@@ -36,69 +39,164 @@ import static chain.tj.util.TjParseEncryptionKey.*;
  */
 public class HashTool {
     public static void main(String[] args) throws InterruptedException {
-        // 在chain.tj.demo.MyGmUtil中有一个main方法，运行后会在当前文件夹中生成一对公私钥
-        // 如果不想生成，可以直接用chain.tj.file.key中的密钥对
+        // **在chain.tj.demo.MyGmUtil中有一个main方法，运行后会在当前文件夹中生成一对公私钥
+        // **如果不想生成，可以直接用chain.tj.file.key中的密钥对
 
         // 获取私钥字节数组
-        String priPath = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\demo\\priKey.pem";
+        String priPath = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\file\\key\\priv.pem";
         byte[] priKeyBytes = getPriKeyByPath(priPath);
         System.out.println("priKeyBytes 16进制形式 = " + toHexString(priKeyBytes));
         System.out.println("---------------------------------分割线0---------------------------------");
 
         // 获取公钥字节数组
-        String pubPath = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\demo\\pubKey.pem";
+        String pubPath = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\file\\key\\pub.pem";
         byte[] pubKeyBytes = getPubKeyByPath(pubPath);
         System.out.println("pubKeyBytes 16进制形式 = " + toHexString(pubKeyBytes));
         System.out.println("---------------------------------分割线1---------------------------------");
 
-        // 获取文件hash
-        String filePath = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\file\\test.txt";
-        byte[] fileHash = getFileHash(filePath, "");
-        System.out.println("fileHash  16进制形式= " + toHexString(fileHash));
-        System.out.println("---------------------------------分割线2---------------------------------");
+        // // 获取文件hash
+        // String filePath = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\file\\test.txt";
+        // byte[] fileHash = getFileHash(filePath, "");
+        // System.out.println("fileHash  16进制形式= " + toHexString(fileHash));
+        // System.out.println("---------------------------------分割线2---------------------------------");
+        //
+        // // 获取文件的签名
+        // byte[] fileSign = getFileSign(fileHash, priKeyBytes);
+        // System.out.println("fileSign 16进制形式= " + toHexString(fileSign));
+        // System.out.println("---------------------------------分割线3---------------------------------");
+        //
+        // // 验证签名,验证通过：true    验证不通过：false
+        // // fileHash = new byte[]{1, 3};
+        // Boolean verifyResult = verifyFile(fileSign, fileHash, pubKeyBytes);
+        // System.out.println("验证结果：" + verifyResult);
+        // System.out.println("---------------------------------分割线4---------------------------------");
 
-        // 获取文件的签名
-        byte[] fileSign = getFileSign(fileHash, priKeyBytes);
-        System.out.println("fileSign 16进制形式= " + toHexString(fileSign));
-        System.out.println("---------------------------------分割线3---------------------------------");
+        // 创建法院行为存证数据对象
+        CourtFileInfo courtFileInfo = new CourtFileInfo();
+
+        Header header = new Header();
+        header.setCourtName("相城法院");
+        header.setCourtId(123L);
+        header.setBizSystemId("通达海-电子送达系统");
+        header.setCaseId("XC1001-001");
+        header.setCategory("电子送达");
+        header.setSubCategory("送达签收");
+        header.setTimestamp(System.currentTimeMillis());
+
+        Map<String, Object> data = new HashMap<>(8);
+        data.put("sender", "XX法院");
+        data.put("people", "张三");
+        data.put("idcard", "3456784567845678");
+        data.put("method", "短信");
+        data.put("address", "13821324323");
+        data.put("sendTime", "2020-06-10 15:32:23");
+        data.put("signoffTime", "2020-06-11 10:32:19");
+
+        // 将header和data转为Jason串
+        String headerStr = JSON.toJSONString(header);
+        String dataStr = JSON.toJSONString(data);
+        // 拼接字符串
+        String headerAndDataStr = headerStr + dataStr;
+        // 字符串经过加密 生成数据摘要
+        byte[] digestStr = getDigestStr(headerAndDataStr, "sm3");
+
+        // 获取签名
+        byte[] digestStrSign = getFileSign(digestStr, priKeyBytes);
 
         // 验证签名,验证通过：true    验证不通过：false
         // fileHash = new byte[]{1, 3};
-        Boolean verifyResult = verifyFile(fileSign, fileHash, pubKeyBytes);
-        System.out.println("验证结果：" + verifyResult);
-        System.out.println("---------------------------------分割线4---------------------------------");
+        Boolean verifyResult1 = verifyFile(digestStrSign, digestStr, pubKeyBytes);
+        System.out.println("验证结果：" + verifyResult1);
+
+        Check check = new Check();
+        // 转换成16进制然后赋值
+        check.setDigest(toHexString(digestStr));
+        check.setHashAlgo("sm3");
+        check.setSign(toHexString(digestStrSign));
+
+        courtFileInfo.setHeader(header);
+        courtFileInfo.setData(data);
+        courtFileInfo.setCheck(check);
 
         // 保存存证内容
-        Map responseMap = saveStore(toHexString(fileHash));
+        Map responseMap = saveStore(courtFileInfo);
         // 此处会返回交易hash,交易hash的值存在：responseMap.get("Data").get("Figure") 中
         System.out.println("responseMap = " + responseMap);
         System.out.println("---------------------------------分割线5---------------------------------");
 
 
-        // 根据交易hash获取当前区块的高度
-        Map map = (Map) responseMap.get("Data");
-        String figure = (String) map.get("Figure");
-        System.out.println("figure = " + figure);
-        // 同步节点之间数据
-        Thread.sleep(5000);
-        Map heightByTxHash = getHeightByTxHash(figure);
-        // 区块的高度存放在 heightByTxHash.get("Data") 中
-        System.out.println("heightByTxHash = " + heightByTxHash);
-        System.out.println("---------------------------------分割线6---------------------------------");
+        // // 根据交易hash获取当前区块的高度
+        // Map map = (Map) responseMap.get("Data");
+        // String figure = (String) map.get("Figure");
+        // System.out.println("figure = " + figure);
+        // // 同步节点之间数据
+        // Thread.sleep(5000);
+        // Map heightByTxHash = getHeightByTxHash(figure);
+        // // 区块的高度存放在 heightByTxHash.get("Data") 中
+        // System.out.println("heightByTxHash = " + heightByTxHash);
+        // System.out.println("---------------------------------分割线6---------------------------------");
+        //
+        // // 根据链的高度获取区块信息
+        // Integer height = (Integer) heightByTxHash.get("Data");
+        // Map blockByHeight = getBlockByHeight(height);
+        // // 此处会返回 区块hash的值，位置：blockByHeight.get("Data").get("header").get("blockHash")
+        // System.out.println("blockByHeight = " + blockByHeight);
+        // System.out.println("---------------------------------分割线7---------------------------------");
+        //
+        // // 根据hash值获取区块信息
+        // Map data1 = (Map) blockByHeight.get("Data");
+        // Map header1 = (Map) data1.get("header");
+        // String hash = (String) header1.get("blockHash");
+        // String blockByHash = getBlockByHash(hash);
+        // System.out.println("blockByHash = " + blockByHash);
+    }
 
-        // 根据链的高度获取区块信息
-        Integer height = (Integer) heightByTxHash.get("Data");
-        Map blockByHeight = getBlockByHeight(height);
-        // 此处会返回 区块hash的值，位置：blockByHeight.get("Data").get("header").get("blockHash")
-        System.out.println("blockByHeight = " + blockByHeight);
-        System.out.println("---------------------------------分割线7---------------------------------");
 
-        // 根据hash值获取区块信息
-        Map data = (Map) blockByHeight.get("Data");
-        Map header = (Map) data.get("header");
-        String hash = (String) header.get("blockHash");
-        String blockByHash = getBlockByHash(hash);
-        System.out.println("blockByHash = " + blockByHash);
+    /**
+     * 校验数据
+     *
+     * @param courtFileInfo
+     */
+    private static void checkData(CourtFileInfo courtFileInfo) {
+        Header header = courtFileInfo.getHeader();
+        Map<String, Object> data = courtFileInfo.getData();
+        Check check = courtFileInfo.getCheck();
+        if (header == null || data == null || check == null) {
+            throw new ServiceException("数据报文头信息header、自定义的业务行为详细数据data、数据校验信息check不可以为空");
+        }
+        if (StringUtils.isBlank(header.getCourtName())) {
+            throw new ServiceException("法院名称courtName不可以为空");
+        }
+        if (header.getCourtId() == null || header.getCourtId() < 0) {
+            throw new ServiceException("法院编号courtId不可以为空并且必须大于0");
+        }
+        if (StringUtils.isBlank(header.getBizSystemId())) {
+            throw new ServiceException("业务系统身份bizSystemId不可以为空");
+        }
+        if (StringUtils.isBlank(header.getCaseId())) {
+            throw new ServiceException("案件编号caseId不可以为空");
+        }
+        if (StringUtils.isBlank(header.getCategory())) {
+            throw new ServiceException("业务行为主分类category不可以为空");
+        }
+        if (header.getTimestamp() == null || header.getTimestamp() <= 0) {
+            throw new ServiceException("时间戳timestamp非法或者为空");
+        }
+
+        if (data.isEmpty()) {
+            throw new ServiceException("没有任何自定义的业务行为数据");
+        }
+
+        if (StringUtils.isBlank(check.getDigest())) {
+            throw new ServiceException("数据摘要digest不可以为空");
+        }
+        if (StringUtils.isBlank(check.getHashAlgo())) {
+            throw new ServiceException("哈希算法hashAlgo不可以为空");
+        }
+        if (StringUtils.isBlank(check.getSign())) {
+            throw new ServiceException("签名值sign不可以为空");
+        }
+
     }
 
 
@@ -167,6 +265,28 @@ public class HashTool {
     }
 
     /**
+     * 获取hash值
+     *
+     * @param content
+     * @param hashType 求hash值的算法
+     * @return
+     */
+    public static byte[] getDigestStr(String content, String hashType) {
+        if (StringUtils.isBlank(content)) {
+            throw new ServiceException("内容不可以为空！");
+        }
+        // 获取文件内容hash
+        byte[] hashBytes;
+        if (StringUtils.isBlank(hashType) || StringUtils.equals(hashType, "sm3")) {
+            // 使用sm3加密
+            hashBytes = sm3Hash(content.getBytes());
+        } else {
+            hashBytes = getSHA256Str(content);
+        }
+        return hashBytes;
+    }
+
+    /**
      * 获取文件的签名
      *
      * @param fileHashBytes
@@ -198,10 +318,14 @@ public class HashTool {
     /**
      * 保存存证信息
      *
-     * @param data 要保存的内容
+     * @param courtFileInfo 要保存的内容
      * @return
      */
-    public static Map saveStore(String data) {
+    public static Map saveStore(CourtFileInfo courtFileInfo) {
+        // 校验数据
+        checkData(courtFileInfo);
+        // 将对象转为json串
+        String data = JSON.toJSONString(courtFileInfo);
         String s = doPost(data);
         // 将json串转为Map
         Map map = (Map) JSONObject.parse(s);
@@ -299,7 +423,7 @@ public class HashTool {
         // 创建Post请求
         HttpPost httpPost = new HttpPost("http://10.1.5.226:58080/store");
 
-        Map<String, String> map = new HashMap<String, String>(2);
+        Map<String, String> map = new HashMap<>(2);
         map.put("Data", data);
 
         String jsonString = JSON.toJSONString(map);
