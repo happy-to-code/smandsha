@@ -54,22 +54,6 @@ public class HashTool {
         System.out.println("pubKeyBytes 16进制形式 = " + toHexString(pubKeyBytes));
         System.out.println("---------------------------------分割线1---------------------------------");
 
-        // // 获取文件hash
-        // String filePath = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\file\\test.txt";
-        // byte[] fileHash = getFileHash(filePath, "");
-        // System.out.println("fileHash  16进制形式= " + toHexString(fileHash));
-        // System.out.println("---------------------------------分割线2---------------------------------");
-        //
-        // // 获取文件的签名
-        // byte[] fileSign = getFileSign(fileHash, priKeyBytes);
-        // System.out.println("fileSign 16进制形式= " + toHexString(fileSign));
-        // System.out.println("---------------------------------分割线3---------------------------------");
-        //
-        // // 验证签名,验证通过：true    验证不通过：false
-        // // fileHash = new byte[]{1, 3};
-        // Boolean verifyResult = verifyFile(fileSign, fileHash, pubKeyBytes);
-        // System.out.println("验证结果：" + verifyResult);
-        // System.out.println("---------------------------------分割线4---------------------------------");
 
         // 创建法院行为存证数据对象
         CourtFileInfo courtFileInfo = new CourtFileInfo();
@@ -122,7 +106,7 @@ public class HashTool {
         Map responseMap = saveStore(courtFileInfo);
         // 此处会返回交易hash,交易hash的值存在：responseMap.get("Data").get("Figure") 中
         System.out.println("responseMap = " + responseMap);
-        System.out.println("---------------------------------分割线5---------------------------------");
+        System.out.println("---------------------------------分割线2---------------------------------");
 
 
         // 根据交易hash获取当前区块的高度
@@ -134,14 +118,14 @@ public class HashTool {
         Map heightByTxHash = getHeightByTxHash(figure);
         // 区块的高度存放在 heightByTxHash.get("Data") 中
         System.out.println("heightByTxHash = " + heightByTxHash);
-        System.out.println("---------------------------------分割线6---------------------------------");
+        System.out.println("---------------------------------分割线3---------------------------------");
 
         // 根据链的高度获取区块信息
         Integer height = (Integer) heightByTxHash.get("Data");
         Map blockByHeight = getBlockByHeight(height);
         // 此处会返回 区块hash的值，位置：blockByHeight.get("Data").get("header").get("blockHash")
         System.out.println("blockByHeight = " + blockByHeight);
-        System.out.println("---------------------------------分割线7---------------------------------");
+        System.out.println("---------------------------------分割线4---------------------------------");
 
         // 根据hash值获取区块信息
         Map data1 = (Map) blockByHeight.get("Data");
