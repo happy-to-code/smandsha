@@ -125,30 +125,30 @@ public class HashTool {
         System.out.println("---------------------------------分割线5---------------------------------");
 
 
-        // // 根据交易hash获取当前区块的高度
-        // Map map = (Map) responseMap.get("Data");
-        // String figure = (String) map.get("Figure");
-        // System.out.println("figure = " + figure);
-        // // 同步节点之间数据
+        // 根据交易hash获取当前区块的高度
+        Map map = (Map) responseMap.get("Data");
+        String figure = (String) map.get("Figure");
+        System.out.println("figure = " + figure);
+        // 同步节点之间数据
         // Thread.sleep(5000);
-        // Map heightByTxHash = getHeightByTxHash(figure);
-        // // 区块的高度存放在 heightByTxHash.get("Data") 中
-        // System.out.println("heightByTxHash = " + heightByTxHash);
-        // System.out.println("---------------------------------分割线6---------------------------------");
-        //
-        // // 根据链的高度获取区块信息
-        // Integer height = (Integer) heightByTxHash.get("Data");
-        // Map blockByHeight = getBlockByHeight(height);
-        // // 此处会返回 区块hash的值，位置：blockByHeight.get("Data").get("header").get("blockHash")
-        // System.out.println("blockByHeight = " + blockByHeight);
-        // System.out.println("---------------------------------分割线7---------------------------------");
-        //
-        // // 根据hash值获取区块信息
-        // Map data1 = (Map) blockByHeight.get("Data");
-        // Map header1 = (Map) data1.get("header");
-        // String hash = (String) header1.get("blockHash");
-        // String blockByHash = getBlockByHash(hash);
-        // System.out.println("blockByHash = " + blockByHash);
+        Map heightByTxHash = getHeightByTxHash(figure);
+        // 区块的高度存放在 heightByTxHash.get("Data") 中
+        System.out.println("heightByTxHash = " + heightByTxHash);
+        System.out.println("---------------------------------分割线6---------------------------------");
+
+        // 根据链的高度获取区块信息
+        Integer height = (Integer) heightByTxHash.get("Data");
+        Map blockByHeight = getBlockByHeight(height);
+        // 此处会返回 区块hash的值，位置：blockByHeight.get("Data").get("header").get("blockHash")
+        System.out.println("blockByHeight = " + blockByHeight);
+        System.out.println("---------------------------------分割线7---------------------------------");
+
+        // 根据hash值获取区块信息
+        Map data1 = (Map) blockByHeight.get("Data");
+        Map header1 = (Map) data1.get("header");
+        String hash = (String) header1.get("blockHash");
+        String blockByHash = getBlockByHash(hash);
+        System.out.println("blockByHash = " + blockByHash);
     }
 
 
