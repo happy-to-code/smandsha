@@ -2,7 +2,7 @@ package chain.tj.demo;
 
 import chain.tj.common.exception.ServiceException;
 import chain.tj.model.domain.court.Check;
-import chain.tj.model.domain.court.CourtFileInfo;
+import chain.tj.model.domain.court.OperationLog;
 import chain.tj.model.domain.court.Header;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -56,7 +56,7 @@ public class HashTool {
 
 
         // 创建法院行为存证数据对象
-        CourtFileInfo courtFileInfo = new CourtFileInfo();
+        OperationLog operationLog = new OperationLog();
 
         Header header = new Header();
         header.setCourtName("相城法院");
@@ -85,12 +85,12 @@ public class HashTool {
         byte[] digestStr = getDigestStr(headerAndDataStr, "sm3");
 
         // 获取签名
-        byte[] digestStrSign = getFileSign(digestStr, priKeyBytes);
+        byte[] digestStrSign = getSign(digestStr, priKeyBytes);
 
         // 验证签名,验证通过：true    验证不通过：false
         // fileHash = new byte[]{1, 3};
-        Boolean verifyResult1 = verifyFile(digestStrSign, digestStr, pubKeyBytes);
-        System.out.println("验证结果：" + verifyResult1);
+        Boolean verifyResult = verify(digestStrSign, digestStr, pubKeyBytes);
+        System.out.println("验证结果：" + verifyResult);
 
         Check check = new Check();
         // 转换成16进制然后赋值
@@ -98,23 +98,22 @@ public class HashTool {
         check.setHashAlgo("sm3");
         check.setSign(toHexString(digestStrSign));
 
-        courtFileInfo.setHeader(header);
-        courtFileInfo.setData(data);
-        courtFileInfo.setCheck(check);
+        operationLog.setHeader(header);
+        operationLog.setData(data);
+        operationLog.setCheck(check);
 
         // 保存存证内容
-        Map responseMap = saveStore(courtFileInfo);
+        Map responseMap = saveStore(operationLog);
         // 此处会返回交易hash,交易hash的值存在：responseMap.get("Data").get("Figure") 中
         System.out.println("responseMap = " + responseMap);
         System.out.println("---------------------------------分割线2---------------------------------");
-
 
         // 根据交易hash获取当前区块的高度
         Map map = (Map) responseMap.get("Data");
         String figure = (String) map.get("Figure");
         System.out.println("figure = " + figure);
         // 同步节点之间数据
-        // Thread.sleep(5000);
+        Thread.sleep(5000);
         Map heightByTxHash = getHeightByTxHash(figure);
         // 区块的高度存放在 heightByTxHash.get("Data") 中
         System.out.println("heightByTxHash = " + heightByTxHash);
@@ -139,12 +138,12 @@ public class HashTool {
     /**
      * 校验数据
      *
-     * @param courtFileInfo
+     * @param operationLog
      */
-    private static void checkData(CourtFileInfo courtFileInfo) {
-        Header header = courtFileInfo.getHeader();
-        Map<String, Object> data = courtFileInfo.getData();
-        Check check = courtFileInfo.getCheck();
+    private static void checkData(OperationLog operationLog) {
+        Header header = operationLog.getHeader();
+        Map<String, Object> data = operationLog.getData();
+        Check check = operationLog.getCheck();
         if (header == null || data == null || check == null) {
             throw new ServiceException("数据报文头信息header、自定义的业务行为详细数据data、数据校验信息check不可以为空");
         }
@@ -277,7 +276,7 @@ public class HashTool {
      * @param priKeyBytes
      * @return
      */
-    public static byte[] getFileSign(byte[] fileHashBytes, byte[] priKeyBytes) {
+    public static byte[] getSign(byte[] fileHashBytes, byte[] priKeyBytes) {
         byte[] signBytes = new byte[0];
         try {
             signBytes = sm2Sign(priKeyBytes, fileHashBytes);
@@ -294,22 +293,22 @@ public class HashTool {
      * @param fileHash
      * @return
      */
-    public static Boolean verifyFile(byte[] sign, byte[] fileHash, byte[] pubKeyBytes) {
-        boolean verify = sm2Verify(pubKeyBytes, fileHash, sign);
-        return verify;
+    public static Boolean verify(byte[] sign, byte[] fileHash, byte[] pubKeyBytes) {
+        boolean verifyResult = sm2Verify(pubKeyBytes, fileHash, sign);
+        return verifyResult;
     }
 
     /**
      * 保存存证信息
      *
-     * @param courtFileInfo 要保存的内容
+     * @param operationLog 要保存的内容
      * @return
      */
-    public static Map saveStore(CourtFileInfo courtFileInfo) {
+    public static Map saveStore(OperationLog operationLog) {
         // 校验数据
-        checkData(courtFileInfo);
+        checkData(operationLog);
         // 将对象转为json串
-        String data = JSON.toJSONString(courtFileInfo);
+        String data = JSON.toJSONString(operationLog);
         String s = doPost(data);
         // 将json串转为Map
         Map map = (Map) JSONObject.parse(s);

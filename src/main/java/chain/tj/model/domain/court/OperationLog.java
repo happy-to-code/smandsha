@@ -12,7 +12,7 @@ import java.util.Map;
  * @version:
  */
 @Data
-public class CourtFileInfo {
+public class OperationLog {
     /**
      * 数据报文头信息
      */
