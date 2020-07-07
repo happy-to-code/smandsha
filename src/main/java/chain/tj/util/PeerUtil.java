@@ -10,6 +10,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.security.MessageDigest;
@@ -111,6 +113,100 @@ public class PeerUtil {
         }
         byte[] bytes = hexToByteArray(str);
         return ByteString.copyFrom(bytes);
+    }
+
+
+    /**
+     * 16进制直接转换成为字符串(无需Unicode解码)
+     *
+     * @param hexStr
+     * @return
+     */
+    public static String hexStr2Str(String hexStr) {
+        String str = "0123456789ABCDEF";
+        char[] hexs = hexStr.toCharArray();
+        byte[] bytes = new byte[hexStr.length() / 2];
+        int n;
+        for (int i = 0; i < bytes.length; i++) {
+            n = str.indexOf(hexs[2 * i]) * 16;
+            n += str.indexOf(hexs[2 * i + 1]);
+            bytes[i] = (byte) (n & 0xff);
+        }
+        return new String(bytes);
+    }
+
+
+    /**
+     * Mapped File way MappedByteBuffer 可以在处理大文件时，提升性能
+     *
+     * @param filename
+     * @return
+     * @throws IOException
+     */
+    public static byte[] toByteArray(String filename) throws IOException {
+        FileChannel fc = null;
+        try {
+            fc = new RandomAccessFile(filename, "r").getChannel();
+            MappedByteBuffer byteBuffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size()).load();
+            // System.out.println(byteBuffer.isLoaded());
+            byte[] result = new byte[(int) fc.size()];
+            if (byteBuffer.remaining() > 0) {
+                // System.out.println("remain");
+                byteBuffer.get(result, 0, byteBuffer.remaining());
+            }
+            return result;
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        } finally {
+            try {
+                fc.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * NIO way
+     *
+     * @param filename
+     * @return
+     * @throws IOException
+     */
+    public static byte[] toByteArrayNio(String filename) throws IOException {
+
+        File f = new File(filename);
+        if (!f.exists()) {
+            throw new FileNotFoundException(filename);
+        }
+
+        FileChannel channel = null;
+        FileInputStream fs = null;
+        try {
+            fs = new FileInputStream(f);
+            channel = fs.getChannel();
+            ByteBuffer byteBuffer = ByteBuffer.allocate((int) channel.size());
+            while ((channel.read(byteBuffer)) > 0) {
+                // do nothing
+                // System.out.println("reading");
+            }
+            return byteBuffer.array();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        } finally {
+            try {
+                channel.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                fs.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -499,26 +595,17 @@ public class PeerUtil {
     }
 
 
-    public static void main(String[] args) {
-        String s = "112131726444759362052555576971475452203323108726981633540253770691901702812637";
-        System.out.println("s.length() = " + s.length());
+    public static void main(String[] args) throws IOException {
+        // String s = "37393539313437616237313038393737633538306135353666616562663038343432613935326134643835353961623539363932333532623739623231663437";
+        // String s1 = hexStr2Str(s);
+        // System.out.println("s1 = " + s1);
 
-        for (int i = 0; i < 50; i++) {
-            System.out.println("iiiiiiiiiiiiiiiiiiiii:" + i);
-            StringBuilder stringBuilder = new StringBuilder();
-            int[] ints = gennerateArray(32, 256);
-            for (int anInt : ints) {
-                stringBuilder.append((byte) anInt);
-            }
-            System.out.println("stringBuilder.toString():::" + stringBuilder.toString().length());
-            String s1 = stringBuilder.toString().replaceAll("-", "13");
-            System.out.println(s1);
-            System.out.println(s1.length());
-            if (s1.length() > 78) {
-                String substring = s1.substring(0, 78);
-                System.out.println("substring = " + substring);
-                System.out.println("substring = " + substring.length());
-            }
-        }
+        String path = "E:\\200617workproject\\java\\src\\main\\java\\chain\\tj\\file\\video\\418.mp4";
+        byte[] bytes = toByteArray(path);
+        System.out.println("bytes = " + bytes);
+        System.out.println("bytes = " + bytes.toString());
+
+        byte[] bytes1 = toByteArrayNio(path);
+        System.out.println("bytes1 = " + bytes1);
     }
 }

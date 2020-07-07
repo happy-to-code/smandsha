@@ -48,4 +48,16 @@ public class Header {
     private Long timestamp;
 
 
+    // @Override
+    // public String toString() {
+    //     return "{" +
+    //             "caseId:'" + caseId + '\'' +
+    //             ",courtId:" + courtId +'\'' +
+    //             ",category:'" + category + '\'' +
+    //             ",courtName:'" + courtName + '\'' +
+    //             ",timestamp:" + timestamp +'\'' +
+    //             ",bizSystemId:'" + bizSystemId + '\'' +
+    //             ",subCategory:'" + subCategory + '\'' +
+    //             '}';
+    // }
 }

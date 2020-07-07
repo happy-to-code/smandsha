@@ -2,8 +2,8 @@ package chain.tj.demo;
 
 import chain.tj.common.exception.ServiceException;
 import chain.tj.model.domain.court.Check;
-import chain.tj.model.domain.court.OperationLog;
 import chain.tj.model.domain.court.Header;
+import chain.tj.model.domain.court.OperationLog;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +26,7 @@ import java.util.Map;
 
 import static chain.tj.util.FileUtil.readFile;
 import static chain.tj.util.GmUtils.*;
+import static chain.tj.util.PeerUtil.covent10To16Str;
 import static chain.tj.util.PeerUtil.toHexString;
 import static chain.tj.util.ShaUtil.getSHA256Str;
 import static chain.tj.util.TjParseEncryptionKey.*;
@@ -68,7 +69,7 @@ public class HashTool {
         header.setTimestamp(System.currentTimeMillis());
 
         Map<String, Object> data = new HashMap<>(8);
-        data.put("sender", "XX法院");
+        data.put("sender", "相城法院");
         data.put("people", "张三");
         data.put("idcard", "3456784567845678");
         data.put("method", "短信");
@@ -81,8 +82,12 @@ public class HashTool {
         String dataStr = JSON.toJSONString(data);
         // 拼接字符串
         String headerAndDataStr = headerStr + dataStr;
+        System.out.println("headerAndDataStr = " + headerAndDataStr);
         // 字符串经过加密 生成数据摘要
-        byte[] digestStr = getDigestStr(headerAndDataStr, "sm3");
+        byte[] digestStr = getDigestStr(headerAndDataStr, "sha256");
+        System.out.println("toHexString(digestStr) = " + toHexString(digestStr));
+        System.out.println("covent10To16Str(digestStr) = " + covent10To16Str(digestStr));
+
 
         // 获取签名
         byte[] digestStrSign = getSign(digestStr, priKeyBytes);
@@ -95,7 +100,7 @@ public class HashTool {
         Check check = new Check();
         // 转换成16进制然后赋值
         check.setDigest(toHexString(digestStr));
-        check.setHashAlgo("sm3");
+        check.setHashAlgo("sha256");
         check.setSign(toHexString(digestStrSign));
 
         operationLog.setHeader(header);
@@ -309,6 +314,7 @@ public class HashTool {
         checkData(operationLog);
         // 将对象转为json串
         String data = JSON.toJSONString(operationLog);
+        System.out.println("data = " + data);
         String s = doPost(data);
         // 将json串转为Map
         Map map = (Map) JSONObject.parse(s);
@@ -404,14 +410,17 @@ public class HashTool {
         // 获得Http客户端(可以理解为:你得先有一个浏览器;注意:实际上HttpClient与浏览器是不一样的)
         CloseableHttpClient httpClientPost = HttpClientBuilder.create().build();
         // 创建Post请求
-        HttpPost httpPost = new HttpPost("http://10.1.5.226:58080/store");
+        HttpPost httpPost = new HttpPost("http://10.1.5.223:8070/v2/tx/store");
+        // HttpPost httpPost = new HttpPost("http://58.208.84.253:59301/v2/tx/store");
 
         Map<String, String> map = new HashMap<>(2);
         map.put("Data", data);
 
         String jsonString = JSON.toJSONString(map);
-
+        System.out.println("jsonString = " + jsonString);
+        System.out.println("jsonString.getBytes() = " + jsonString.getBytes());
         StringEntity entity = new StringEntity(jsonString, "UTF-8");
+        System.out.println("entity = " + entity);
 
         // post请求是将参数放在请求体里面传过去的;这里将entity放入post请求体中
         httpPost.setEntity(entity);
@@ -463,7 +472,7 @@ public class HashTool {
     public static String doGetInfo(String paramUrl) {
         // 返回值
         String responseStr = null;
-        String url = "http://10.1.5.226:58080/" + paramUrl;
+        String url = "http://10.1.3.155:9998/" + paramUrl;
 
         // 获得Http客户端(可以理解为:你得先有一个浏览器;注意:实际上HttpClient与浏览器是不一样的)
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
